@@ -34,7 +34,9 @@ class PhotoCollectionViewController: UIViewController, UICollectionViewDelegate,
         checkCoreDataForPhotos()
         setupFetchedResultsController()
         fetchPhotosFromCoreData()
-        getPhotos()
+        if photoArray.isEmpty {
+            getPhotos()
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
