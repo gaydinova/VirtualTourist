@@ -204,6 +204,28 @@ class PhotoCollectionViewController: UIViewController, UICollectionViewDelegate,
            return cell
        }
     
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let photoToDelete = fetchedResultsController.object(at: indexPath)
+        
+        // Delete the photo from Core Data
+        dataController.viewContext.delete(photoToDelete)
+        
+        do {
+            try dataController.viewContext.save()
+            print("Photo deleted from Core Data.")
+            
+            // Remove the photo from the local array
+            photoArray.remove(at: indexPath.row)
+            
+            // Reload the collection view
+            setupFetchedResultsController()
+            collectionView.reloadData()
+        } catch {
+            print("Failed to delete photo from Core Data: \(error.localizedDescription)")
+            showErrorAlert(title: "Delete Error", message: "Unable to delete photo: \(error.localizedDescription)")
+        }
+    }
+    
     // MARK: - MKMapViewDelegate Methods
     func centerMapOnCoordinates(latitude: CLLocationDegrees, longitude: CLLocationDegrees) {
         mapView.removeAnnotations(mapView.annotations)
@@ -251,10 +273,13 @@ class PhotoCollectionViewController: UIViewController, UICollectionViewDelegate,
     }
     
     func getPhotos() {
+        let randomPage = Int.random(in: 1...10)
+        print("Fetching photos from random page: \(randomPage)")
+       
         newCollectionButton.isEnabled = false
         print("Fetching photos from Flickr API.")
         
-        flickrAPI.searchPhotos(latitude: pinLocation?.latitude ?? 0.0, longitude: pinLocation?.longitude ?? 0.0, page: page) { [weak self] (response: PhotoSearchResponse?, error: Error?) in
+        flickrAPI.searchPhotos(latitude: pinLocation?.latitude ?? 0.0, longitude: pinLocation?.longitude ?? 0.0, page: randomPage) { [weak self] (response: PhotoSearchResponse?, error: Error?) in
             guard let self = self else {
                 print("Self is nil, exiting closure.")
                 return
